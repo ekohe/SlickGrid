@@ -64,6 +64,15 @@
             return (value) ? "<img src='../images/bullet_star.png' align='absmiddle'>" : "";
         },
         
+        // Date cell formatter to handle "yy-mm-dd" format (for DateCellEditor2)
+        DateCellFormatter: function(row, cell, value, columnDef, dataContext) {
+            if (value == null || value === "") {
+              return "";
+            }
+            var thedate = $.datepicker.parseDate("yy-mm-dd", value);
+            return $.datepicker.formatDate(columnDef.DateShowFormat, thedate);
+        },
+        
         TextCellEditor : function(args) {
             var $input;
             var defaultValue;
@@ -281,6 +290,104 @@
               return $input.parent();
             };
 
+            this.init();
+        },
+        
+        // Date cell editor which can handle "yy-mm-dd" format
+        DateCellEditor2: function(args) {
+            var $input;
+            var defaultValue;
+            var scope = this;
+            var calendarOpen = false;
+            var showFormat = "yy-mm-dd";
+            var sourceFormat = "yy-mm-dd";
+            
+            this.init = function() {
+                if (args.column.DateSourceFormat != undefined) {
+                    sourceFormat = args.column.DateSourceFormat;
+                }
+                if (args.column.DateShowFormat != undefined) {
+                    showFormat = args.column.DateShowFormat;
+                }
+                $input = $("<INPUT type=text class='editor-text' />");
+                $input.appendTo(args.container);
+                $input.focus().select();
+                $input.datepicker({
+                  showOn: "button",
+                  buttonImageOnly: true,
+                  buttonImage: "/assets/calendar.gif",
+                  beforeShow: function() { calendarOpen = true },
+                  onClose: function() { calendarOpen = false },
+                  dateFormat: showFormat
+                });
+                $input.width($input.width() - 18);
+            };
+            
+            this.destroy = function() {
+                $.datepicker.dpDiv.stop(true, true);
+                $input.datepicker("hide");
+                $input.datepicker("destroy");
+                $input.remove();
+            };
+            
+            this.show = function() {
+                if (calendarOpen) {
+                    $.datepicker.dpDiv.stop(true, true).show();
+                }
+            };
+            
+            this.hide = function() {
+                if (calendarOpen) {
+                    $.datepicker.dpDiv.stop(true, true).hide();
+                }
+            };
+            
+            this.position = function(position) {
+                if (!calendarOpen) return;
+                $.datepicker.dpDiv
+                .css("top", position.top + 30)
+                .css("left", position.left);
+            };
+            
+            this.focus = function() {
+                $input.focus();
+            };
+            
+            this.loadValue = function(item) {
+                defaultValue = item[args.column.field];
+                var thedate = $.datepicker.parseDate(sourceFormat, defaultValue);
+                defaultValue = $.datepicker.formatDate(showFormat, thedate);
+                $input.val(defaultValue);
+                $input[0].defaultValue = defaultValue;
+                $input.select();
+            };
+            
+            this.serializeValue = function() {
+                var thedate = $.datepicker.parseDate(showFormat, $input.val());
+                return $.datepicker.formatDate(sourceFormat,
+                thedate);
+            };
+            
+            this.applyValue = function(item, state) {
+                item[args.column.field] = state;
+            };
+            
+            this.isValueChanged = function() {
+                return (! ($input.val() == "" && defaultValue == null))
+                && ($input.val() != defaultValue);
+            };
+            
+            this.validate = function() {
+                return {
+                    valid: true,
+                    msg: null
+                };
+            };
+            
+            this.getCell = function(){
+              return $input.parent();
+            };
+            
             this.init();
         },
 
