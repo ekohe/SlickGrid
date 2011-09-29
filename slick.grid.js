@@ -246,7 +246,9 @@ if (typeof Slick === "undefined") {
             }
 
             viewportW = parseFloat($.css($container[0], "width", true));
-
+            
+            removeInvisibleColumns();
+            
             createColumnHeaders();
             setupColumnSort();
             createCssRules();
@@ -311,6 +313,17 @@ if (typeof Slick === "undefined") {
 
         function getCanvasNode() {
             return $canvas[0];
+        }
+        
+        // Remove columns which have option of visible:false when initialize the grid
+        function removeInvisibleColumns() {
+            var tmp = [];
+            for (var i = 0; i < columns.length; i++) {
+                if (columns[i].visible != false) {
+                    tmp.push(columns[i]);
+                }
+            }
+            columns = tmp;
         }
 
         function measureScrollbar() {
@@ -1636,7 +1649,7 @@ if (typeof Slick === "undefined") {
             if (!cell || (currentEditor !== null && activeRow == cell.row && activeCell == cell.cell)) {
                 return;
             }
-
+            
             trigger(self.onClick, {row:cell.row, cell:cell.cell}, e);
             if (e.isImmediatePropagationStopped()) {
                 return;
@@ -2472,8 +2485,8 @@ if (typeof Slick === "undefined") {
             }
             selectionModel.setSelectedRanges(rowsToRanges(rows));
         }
-
-
+        
+        
         //////////////////////////////////////////////////////////////////////////////////////////////
         // Debug
 
