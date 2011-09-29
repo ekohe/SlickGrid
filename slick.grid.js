@@ -1268,7 +1268,12 @@ if (typeof Slick === "undefined") {
                     removeRowFromCache(i);
                 }
             }
-            th = Math.max(options.rowHeight * newRowCount, viewportH - scrollbarDimensions.height);
+            
+            // Fix the viewport height bug when there is no horizontal scroll and the grid height is small than the viewport
+            // There was a gap as high as the horizontal scroll between viewport and pager
+            var hasHorizontalScroll = ($viewport[0].scrollWidth != $viewport[0].clientWidth);
+            th = Math.max(options.rowHeight * newRowCount, viewportH - (hasHorizontalScroll ? scrollbarDimensions.height : 0));
+            
             if (th < maxSupportedCssHeight) {
                 // just one page
                 h = ph = th;
