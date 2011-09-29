@@ -2491,6 +2491,18 @@ if (typeof Slick === "undefined") {
             selectionModel.setSelectedRanges(rowsToRanges(rows));
         }
         
+        // ----------------------- customized methods for convenience ------------------------
+        function getRows() {
+          return rowsCache;
+        }
+      
+        function getRowAt(i){
+          return rowsCache[i];
+        }
+        
+        function isEditing(){
+          return currentEditor != null;
+        }
         
         //////////////////////////////////////////////////////////////////////////////////////////////
         // Debug
@@ -2620,7 +2632,12 @@ if (typeof Slick === "undefined") {
 
             // IEditor implementation
             "getEditorLock":                getEditorLock,
-            "getEditController":            getEditController
+            "getEditController":            getEditController,
+            
+            // Customized APIs
+            "getRows":                      getRows,
+            "getRowAt":                     getRowAt,
+            "isEditing":                    isEditing
         });
 
         init();
