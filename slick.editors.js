@@ -63,8 +63,7 @@
         StarFormatter : function(row, cell, value, columnDef, dataContext) {
             return (value) ? "<img src='../images/bullet_star.png' align='absmiddle'>" : "";
         },
-
-
+        
         TextCellEditor : function(args) {
             var $input;
             var defaultValue;
@@ -129,7 +128,11 @@
                     msg: null
                 };
             };
-
+            
+            this.getCell = function(){
+              return $input.parent();
+            };
+            
             this.init();
         },
 
@@ -189,6 +192,10 @@
                     valid: true,
                     msg: null
                 };
+            };
+            
+            this.getCell = function(){
+              return $input.parent();
             };
 
             this.init();
@@ -268,6 +275,10 @@
                     valid: true,
                     msg: null
                 };
+            };
+            
+            this.getCell = function(){
+              return $input.parent();
             };
 
             this.init();
@@ -364,6 +375,10 @@
                     msg: null
                 };
             };
+            
+            this.getCell = function(){
+              return $select.parent();
+            };
 
             this.init();
         },
@@ -438,6 +453,10 @@
                     msg: null
                 };
             };
+            
+            this.getCell = function(){
+              return $input.parent();
+            };
 
             this.init();
         },
@@ -498,6 +517,10 @@
                     valid: true,
                     msg: null
                 };
+            };
+            
+            this.getCell = function(){
+              return $input.parent();
             };
 
             this.init();
@@ -604,6 +627,10 @@
                     valid: true,
                     msg: null
                 };
+            };
+            
+            this.getCell = function(){
+              return $input.parent();
             };
 
             this.init();
