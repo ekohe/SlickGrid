@@ -844,7 +844,78 @@
           }
 
   				this.init();
-  			}
+  			},
+
+
+          // The editor which use jquery.chosen to allow you choose the value as select
+          SelectEditor : function(args) {
+    				var $select;
+    				var choices = args.column.choices;
+    				var width = args.position.width;
+    				var horizontalMargin = 4;
+    				var defaultValue;
+
+    				this.init = function() {
+  				    $select = $("<select class='chzn-select'></select>");
+    					$select.css('width', width-horizontalMargin);
+              $select.appendTo(args.container);
+              $select.focus();
+    					var options = "";
+    					$.each(choices, function() {
+    						options += "<option value='"+this.id+"'>" + this.id + "</option>";
+    					});
+    					$select.html(options);
+
+    					// FIXME
+    					// Fix keyboard enter bug stupidly, find a better way please.
+              setTimeout(function(){
+                          $(".grid_container .chzn-drop").css('left', '0');
+                          }, 100);
+    				};
+
+    				this.destroy = function() {
+                $select.remove();
+    		    };
+
+    		    this.focus = function() {
+                $select.focus();
+    		    };
+
+    		    this.isValueChanged = function() {
+    		        // return true if the value(s) being edited by the user has/have been changed
+    						return ($select.val() != defaultValue);
+    		    };
+
+    		    this.serializeValue = function() {
+    						var obj = {id: $select.val()};
+    				    obj.id = $('option:selected', $select).text();
+    		        return obj;
+    		    };
+
+    		    this.loadValue = function(item) {
+                defaultValue = item[args.column.id].id;
+    						$select.val(defaultValue);
+                $select.select();
+    						$select.chosen().trigger("chzn:open");
+    		    };
+
+    		    this.applyValue = function(item,state) {
+                item[args.column.id] = state.id;
+    		    };
+
+    		    this.validate = function() {
+                return {
+                    valid: true,
+                    msg: null
+                };
+    		    };
+
+    				this.getCell = function(){
+              return $select.parent();
+            }
+
+    				this.init();
+    			}
 
     };
 
