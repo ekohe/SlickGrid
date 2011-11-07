@@ -1604,10 +1604,10 @@ if (typeof Slick === "undefined") {
                     else if (e.which == 39) {
                         navigateRight();
                     }
-                    else if (e.which == 38) {
+                    else if (e.which == 38 && !currentEditor) {
                         navigateUp();
                     }
-                    else if (e.which == 40) {
+                    else if (e.which == 40 && !currentEditor) {
                         navigateDown();
                     }
                     else if (e.which == 9) {
