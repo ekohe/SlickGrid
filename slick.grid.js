@@ -1616,11 +1616,13 @@ if (typeof Slick === "undefined") {
                     else if (e.which == 13) {
                         if (options.editable) {
                             if (currentEditor) {
+                                var multiChosenExist = $('.slick-cell .chzn-select~.chzn-container-multi').size() > 0;
+                                var chosenFull = $('.slick-cell .chzn-select~.chzn-container-multi .chzn-results li.active-result').size() == 0;
                                 // adding new row
                                 if (activeRow === getDataLength()) {
                                     navigateDown();
-                                }
-                                else {
+                                } 
+                                else if (!multiChosenExist || chosenFull) {
                                     commitEditAndSetFocus();
                                 }
                             } else {
