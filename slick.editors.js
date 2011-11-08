@@ -70,8 +70,13 @@
               return "";
             }
             value = value.split(/\s+/)[0];
-            var thedate = $.datepicker.parseDate("yy-mm-dd", value);
-            return $.datepicker.formatDate(columnDef.DateShowFormat, thedate);
+            
+            if (/^\d{4}(\-|\/|\.)\d{1,2}\1\d{1,2}$/.test(value)) {
+              var thedate = $.datepicker.parseDate("yy-mm-dd", value);
+              return $.datepicker.formatDate(columnDef.DateShowFormat, thedate);
+            } else {
+              return value;
+            }
         },
         
         BelongsToFormatter : function(row, cell, value, columnDef, dataContext) {
@@ -84,8 +89,10 @@
             var scope = this;
 
             this.init = function() {
-                $input = $("<INPUT type=text class='editor-text' />")
-                    .appendTo(args.container)
+                $wrapper = $("<DIV style='z-index:10000;position:absolute;background:white;padding:3px;margin:-3px 0 0 -7px;border:3px solid gray; -moz-border-radius:10px; border-radius:10px;'/>")
+                .appendTo(args.container);
+                $input = $("<INPUT type=text class='editor-text' style='width:250px;border:0' />")
+                    .appendTo($wrapper)
                     .bind("keydown.nav", function(e) {
                         if (e.keyCode === $.ui.keyCode.LEFT || e.keyCode === $.ui.keyCode.RIGHT) {
                             e.stopImmediatePropagation();
@@ -156,7 +163,9 @@
             var scope = this;
 
             this.init = function() {
-                $input = $("<INPUT type=text class='editor-text' />");
+                $wrapper = $("<DIV style='z-index:10000;position:absolute;background:white;padding:3px;margin:-3px 0 0 -7px;border:3px solid gray; -moz-border-radius:10px; border-radius:10px;'/>")
+                  .appendTo(args.container);
+                $input = $("<INPUT type=text class='editor-text' style='width:150px;border:none;' />");
 
                 $input.bind("keydown.nav", function(e) {
                     if (e.keyCode === $.ui.keyCode.LEFT || e.keyCode === $.ui.keyCode.RIGHT) {
@@ -164,7 +173,7 @@
                     }
                 });
 
-                $input.appendTo(args.container);
+                $input.appendTo($wrapper);
                 $input.focus().select();
             };
 
@@ -763,23 +772,22 @@
         BelongsToEditor : function(args) {
   				var $select;
   				var choices = args.column.choices;
-  				var optionTextAttribute = args.column.optionTextAttribute;
-  				var width = args.position.width;
-  				var horizontalMargin = 4;
+  				var optionTextAttribute = args.column.optionTextAttribute || 'name';
   				var defaultValue;
 
   				this.init = function() {
+  				  $wrapper = $("<DIV style='z-index:10000;position:absolute;background:white;padding:3px;margin:-3px 0 0 -7px;border:3px solid gray; -moz-border-radius:10px; border-radius:10px;'/>")
+                .appendTo(args.container);
   				  if (args.column.type === 'has_and_belongs_to_many') {
-  				    $select = $("<select class='chzn-select' multiple></select>");
+  				    $select = $("<select class='chzn-select' multiple style='width:200px'></select>");
   				  } else {
-  				    $select = $("<select class='chzn-select'></select>");
+  				    $select = $("<select class='chzn-select' style='width:200px'></select>");
   				  }
-  					$select.css('width', width-horizontalMargin);
-            $select.appendTo(args.container);
+            $select.appendTo($wrapper);
             $select.focus();
   					var options = "";
   					$.each(choices, function() {
-  						options += "<option value="+this.id+">"+this[optionTextAttribute]+"</option>";
+  						options += "<option value='"+this.id+"'>"+this[optionTextAttribute]+"</option>";
   					});
   					$select.html(options);
 
@@ -787,7 +795,7 @@
   					// Fix keyboard enter bug stupidly, find a better way please.
             setTimeout(function(){
                         $(".grid_container .chzn-drop").css('left', '0');
-                        }, 80);
+                        }, 100);
   				};
 
   				this.destroy = function() {
@@ -832,12 +840,14 @@
   						setTimeout(function(){
                 $('.slick-cell .chzn-select~.chzn-container').trigger('mousedown');
               }, 100);
+              
   		    };
 
   		    this.applyValue = function(item,state) {
   		        // deserialize the value(s) saved to "state" and apply them to the data item
   		        // this method may get called after the editor itself has been destroyed
   		        // treat it as an equivalent of a Java/C# "static" method - no instance variables should be accessed
+              
               item[args.column.id].id = state.id;
               item[args.column.id][optionTextAttribute] = state[optionTextAttribute];
   		    };
@@ -857,26 +867,25 @@
 
   				this.init();
   			},
-
-
+  			
+  			
         // The editor which use jquery.chosen to allow you choose the value as select
         SelectEditor : function(args) {
   				var $select;
   				var choices = args.column.choices;
-  				var width = args.position.width;
-  				var horizontalMargin = 4;
   				var defaultValue;
 
   				this.init = function() {
-				    $select = $("<select class='chzn-select'></select>");
-  					$select.css('width', width-horizontalMargin);
-            $select.appendTo(args.container);
+  				  $wrapper = $("<DIV style='z-index:10000;position:absolute;background:white;padding:3px;margin:-3px 0 0 -7px;border:3px solid gray; -moz-border-radius:10px; border-radius:10px;'/>")
+                .appendTo(args.container);
+				    $select = $("<select class='chzn-select' style='width:200px'></select>")
+				        .appendTo($wrapper);
             $select.focus();
   					var options = "";
   					$.each(choices, function() {
   						options += "<option value='"+this.id+"'>" + this.name + "</option>";
   					});
-  					$select.html(options);
+  					$select.html(options);  
 
   					// FIXME
   					// Fix keyboard enter bug stupidly, find a better way please.
@@ -905,7 +914,7 @@
   		    };
 
   		    this.loadValue = function(item) {
-              defaultValue = item[args.column.id] ? item[args.column.id].id : null;
+  		        defaultValue = item[args.column.id] ? item[args.column.id].id : null;
   						$select.val(defaultValue);
               $select.select();
   						$select.chosen();
@@ -929,8 +938,8 @@
 
   				this.init();
   			},
-  			
-  			DoubleSelectEditor: function(args) {
+
+        DoubleSelectEditor: function(args) {
             var $from, $to;
             var scope = this;
             var originValue = args.item[args.column.field].split('-');
@@ -939,20 +948,20 @@
     				var to_choices = args.column.to_choices;
     				var from_field = args.column.from_field;
     				var to_field = args.column.to_field;
-    				var width = args.position.width;
-    				var horizontalMargin = 60;
     				var defaultValue;
             this.init = function() {
-                $from = $("<select class='chzn-select'></select>")
-                            .appendTo(args.container);
 
-                $(args.container).append("&nbsp; <span>-</span> &nbsp;");
+                $wrapper = $("<DIV style='z-index:10000;position:absolute;background:white;padding:3px;margin:-3px 0 0 -7px;border:3px solid gray; -moz-border-radius:10px; border-radius:10px;'/>")
+                    .appendTo(args.container);
+                  
+                $from = $("<select class='chzn-select' style='width: 200px;'></select>")
+                            .appendTo($wrapper);
 
-                $to = $("<select class='chzn-select'></select>")
-                            .appendTo(args.container);
-                $(args.container).append(' <span>-' + staticValue + '</span>');
-      					$from.css('width', (width-horizontalMargin)/2);		
-            		$to.css('width', (width-horizontalMargin)/2);
+                $wrapper.append("&nbsp; <span>-</span> &nbsp;");
+
+                $to = $("<select class='chzn-select' style='width: 200px;'></select>")
+                            .appendTo($wrapper);
+                $wrapper.append(' <span>-' + staticValue + '</span>');
                 var from_options = "", to_options = '';
       					$.each(from_choices, function() {
       						from_options += "<option value='" + this.id + "' code='" + this.code + "'>" + this.name + "</option>";
@@ -1012,6 +1021,7 @@
 
             this.init();
         }
+        
 
     };
 
