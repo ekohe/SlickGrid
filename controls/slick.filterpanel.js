@@ -43,6 +43,7 @@
 		}
 		
 		function generateFilters() {
+		  var inputWidth;
 		  storeCurrentFilters();
 		  
       html = "";
@@ -60,7 +61,9 @@
         if (i==(totalColumnsCount-1)) {
           cssClass = "lastColumn";
         }
-        html += "<input type=\"text\" id=\""+field+"\" style=\"width:"+(parseInt(this.width)+filterWidthOffset)+"px\" value=\""+value+"\" class=\""+cssClass+"\"></input>";
+        inputWidth = $.browser.mozilla ? parseInt(this.width)+filterWidthOffset + 1 : parseInt(this.width)+filterWidthOffset - 1
+        html += "<input type=\"text\" id=\""+field+"\" style=\"width:"+ inputWidth +
+        "px;border-width: 1px;height:20px\" value=\""+value+"\" class=\""+cssClass+"\"></input>";
       });
       
       // Empty the current filters applied array
