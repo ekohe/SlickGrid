@@ -124,7 +124,6 @@
       } else {
         url += "&sort_dir=DESC";
       }
-
       // Filters
       $.each(filters, function(index, value) {
         url += "&filters[][column]="+value[0]+"&filters[][value]="+value[1];
@@ -222,18 +221,11 @@
 			  var object = {};
 			  $.each(columns, function(index, value) {
 			    // match the column and the response data (compare column name and response data key)
-			    for(k in resp.rows[i]){
-			      var key = getKeys(resp.rows[i][k])[0];
-			      if(value.id == key){
-			        object[value.id] = resp.rows[i][k][key]
-		          break;
-		        }
-			    }          
+			    object[value.id] = resp.rows[i][index];         
 			  });
 				data[j] = object;
 				data[j].slick_index = j;
 			}
-      
 			req = null;
 			
       // Loading data
@@ -241,6 +233,10 @@
 
 			// Updating pager
 			onPagingInfoChanged.notify(getPagingInfo());			
+		}
+		
+		function getColumns() {
+		  return columns;
 		}
 		
 	  function getKeys(h) {
@@ -277,6 +273,10 @@
       refresh(); 
     }
     
+    function setFilterWithoutRefresh(filterFn) {
+      filters = filterFn;
+    }
+
 		function addFilter(column, string) {
 		  // If the string is an empty string, then removing the filter if existing
 			if (string=='') {
@@ -409,11 +409,13 @@
 			"getSortDirection": getSortDirection,
 			"getFilters": getFilters,
 			"setFilter": setFilter,
+			"setFilterWithoutRefresh": setFilterWithoutRefresh,
 			"addFilter": addFilter,
 			"getParams": getParams,
 			"setParam": setParam,
 			"setGrid": setGrid,
       "conditionalURI": conditionalURI,
+      'getColumns': getColumns,
       
 			// events
 			"onDataLoading": onDataLoading,
