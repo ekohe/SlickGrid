@@ -99,7 +99,7 @@
         // Preemptive loading mode
         normalLoadingMode = false;
       }
-      if (initedFilter) {
+      if (initedFilter || filters.length > 0) {
         path = path.replace(/filters.*?&/g,'').replace(/&filters.*/g,'');
       } else {
         initedFilter = true;
@@ -108,7 +108,6 @@
       
       // filters, ordering, extra parameters - not specific to the viewport
       url += conditionalURI();
-      
       return [url, normalLoadingMode];
     }
     
