@@ -1585,7 +1585,7 @@ if (typeof Slick === "undefined") {
         function handleDragEnd(e,dd) {
             trigger(self.onDragEnd, dd, e);
         }
-
+        
         function handleKeyDown(e) {
             trigger(self.onKeyDown, {}, e);
             var handled = e.isImmediatePropagationStopped();
@@ -2512,8 +2512,22 @@ if (typeof Slick === "undefined") {
         function getRowByRecordId(id){
           var data = getData();
   			  for(var i in data) {
-  			    if (data.hasOwnProperty(i) && i !== 'length' && data[i].id == id) { return getRowAt(i); };
+  			    if (data.hasOwnProperty(i) && i !== 'length' && data[i].id == id) { return { row: getRowAt(i), index: i} };
   			  }
+        }
+
+        // get ids of selected rows
+        function getSelectedIds(){
+          var selectedIndexes = getSelectedRows();
+          var ids;
+          if (selectedIndexes.length > 0) {
+            ids = $.map(selectedIndexes,function(n, i) { 
+              return getDataItem(n)['id'];
+            });
+            return ids;
+          } else {
+            return [];
+          }
         }
         
         //////////////////////////////////////////////////////////////////////////////////////////////
@@ -2650,7 +2664,8 @@ if (typeof Slick === "undefined") {
             "getRows":                      getRows,
             "getRowAt":                     getRowAt,
             "isEditing":                    isEditing,
-            "getRowByRecordId":             getRowByRecordId
+            "getRowByRecordId":             getRowByRecordId,
+            "getSelectedIds":               getSelectedIds
         });
 
         init();
