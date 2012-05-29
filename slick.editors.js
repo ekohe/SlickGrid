@@ -3,6 +3,10 @@
 (function($) {
 
     var SlickEditor = {
+      
+        TooltipFormatter: function(row, cell, value, columnDef, dataContext) {
+            return "<div title='" + columnDef.tooltips[value] + "'>" + value + "</div>"
+        },
 
         SelectorCellFormatter : function(row, cell, value, columnDef, dataContext) {
             return (!dataContext ? "" : row);
@@ -95,9 +99,9 @@
             return $.map(value, function(val,i) { return val[columnDef.optionTextAttribute]; }).join(", ");
         },
         
-      HasOneFormatter : function(row, cell, value, columnDef, dataContext) {
-      return dataContext[columnDef.id] ? dataContext[columnDef.id][columnDef.optionTextAttribute] : null;
-    },  
+        HasOneFormatter : function(row, cell, value, columnDef, dataContext) {
+            return dataContext[columnDef.id] ? dataContext[columnDef.id][columnDef.optionTextAttribute] : null;
+        },  
         
         TextCellEditor : function(args) {
             var $input;
@@ -276,7 +280,6 @@
             this.destroy = function() {
                 $.datepicker.dpDiv.stop(true,true);
                 $input.datepicker("hide");
-                $input.datepicker("destroy");
                 $input.remove();
             };
 
@@ -352,7 +355,6 @@
             this.destroy = function() {
                 $.datepicker.dpDiv.stop(true,true);
                 $input.datetimepicker("hide");
-                $input.datetimepicker("destroy");
                 $input.remove();
             };
 
@@ -387,6 +389,9 @@
                 $input.datetimepicker({
                     showOn: "button",
                     buttonImageOnly: true,
+                    timeOnly: false,
+                    stepMinute: 0,
+                    minuteGrid: 0,
                     buttonImage: "/assets/calendar.gif",
                     beforeShow: function() { calendarOpen = true },
                     onClose: function() { calendarOpen = false },
@@ -438,7 +443,6 @@
             this.destroy = function() {
                 $.datepicker.dpDiv.stop(true,true);
                 $input.datetimepicker("hide");
-                $input.datetimepicker("destroy");
                 $input.remove();
             };
 
@@ -1230,7 +1234,28 @@
         // The editor which use jquery.chosen to allow you choose the value as select
         SelectEditor : function(args) {
           var $select, $wrapper;
-          var choicesFetchPath = args.column.choices;
+          var choicesFetchPath;
+          var choices = args.column.choices;
+
+          // if the choices option is an array, construce an select option for each element
+          if($.isArray(choices)) {
+            choicesFetchPath = $.map(choices, function(e, index){
+              return {id: e, name: e};
+            });
+          } else if($.isPlainObject(choices)) {   // else if it is an object, construct a more complex object containing select options
+            choicesFetchPath = {};
+            for(var i in choices) {
+              if($.isEmptyObject(choices[i])) {
+                choicesFetchPath[i] = [];
+              } else {
+                var option = $.map(choices[i], function(e, index) {
+                  return {id: e, name: e};
+                });
+                choicesFetchPath[i] = option;
+              }
+            }
+          }
+
           var dependColumn = args.column.depend_column;
           var defaultValue;
           var boxWidth = 200;
