@@ -49,8 +49,16 @@
         MoneyFormatter: function(row, cell, value, columnDef, dataContext) {
             // TODO: make the unit configurable
             var currency = columnDef.currency || "$";
-            var text = (value) ? currency + value.toMoney(2, '.', ',') : "";
+            var text = (value) ? value.toMoney(2, '.', ',') + ' ' +currency: "";
             return "<span style='text-align:right;display:block'>" + text + "</span>";
+        },
+
+        RightFormatter: function(row, cell, value, columnDef, dataContext) {
+            return value == null ? "" : "<span style='text-align:right;display:block'>" + value + "</span>";
+        },
+
+        CenterFormatter: function(row, cell, value, columnDef, dataContext) {
+            return value == null ? "" : "<span style='text-align:center;display:block'>" + value + "</span>";
         },
 
         TaskNameFormatter : function(row, cell, value, columnDef, dataContext) {
@@ -107,7 +115,7 @@
             var $input;
             var defaultValue;
             var scope = this;
-            var boxWidth = 250;
+            var boxWidth = args.column.width;
             var offsetWith = boxWidth + 18;
 
             this.init = function() {
@@ -188,12 +196,10 @@
             var $input;
             var defaultValue;
             var scope = this;
-            var boxWidth = 150;
+            var boxWidth = args.column.width;
             var offsetWith = boxWidth + 28;
 
             this.init = function() {
-                $wrapper = $("<DIV style='z-index:10000;position:absolute;background:white;padding:3px;margin:-3px 0 0 -7px;border:3px solid gray; -moz-border-radius:10px; border-radius:10px;'/>")
-                  .appendTo(args.container);
                 $input = $("<INPUT type=text class='editor-text' style='width:" + boxWidth + "px;border:none;' />");
 
                 $input.bind("keydown.nav", function(e) {
@@ -202,12 +208,12 @@
                     }
                 });
 
-                $input.appendTo($wrapper);
+                $input.appendTo(args.container);
                 $input.focus().select();
                 var winWith = $(window).width(),
-                offsetLeft = $wrapper.offset().left;
+                offsetLeft = $input.offset().left;
                 if(winWith - offsetLeft < offsetWith)
-                  $wrapper.offset({left: winWith - offsetWith})
+                  $input.offset({left: winWith - offsetWith})
             };
 
             this.destroy = function() {
