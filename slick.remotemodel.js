@@ -200,9 +200,9 @@
 		}
 
 		function onSuccess(resp, textStatus, request) {
-      var originLength = data.length;
 		  var from;
 		  var to;
+
 			if (pageSize==0) {
 			  from = resp.offset;
 			  to = resp.offset + resp.count;
@@ -212,11 +212,6 @@
 			  to = parseInt(resp.count);
 	      data.length = to;
 	    }
-
-      // clear original data items
-      for (var i = 0; i < originLength; i++) {
-        delete data[i];
-      }
 
 	    totalRows = parseInt(resp.total);
 			for (var i = 0; i < resp.rows.length; i++) {
@@ -250,8 +245,14 @@
     } 
 
 		function reloadData(from,to) {
-			for (var i=from; i<=to; i++)
-				delete data[i];
+		  var i;
+		  if (from && to) {
+  			for (i=from; i<=to; i++)
+  				delete data[i];
+		  } else {
+		    for (i=0; i<=data.length; i++)
+  				delete data[i];
+		  }
 
 			ensureData(from,to);
 		}
