@@ -5,7 +5,7 @@
     var SlickEditor = {
       
         TooltipFormatter: function(row, cell, value, columnDef, dataContext) {
-            return "<div title='" + columnDef.tooltips[value] + "'>" + value + "</div>"
+            return "<div title='" + columnDef.tooltips[value] + "'>" + "<span style='text-align:center;display:block'>" + value + "</span></div>"
         },
 
         SelectorCellFormatter : function(row, cell, value, columnDef, dataContext) {
@@ -396,7 +396,7 @@
                     showOn: "button",
                     buttonImageOnly: true,
                     timeOnly: false,
-                    stepMinute: 0,
+                    stepMinute: 1,
                     minuteGrid: 0,
                     buttonImage: "/assets/calendar.gif",
                     beforeShow: function() { calendarOpen = true },
@@ -995,16 +995,16 @@
           var choicesFetchPath = args.column.choices;
           var optionTextAttribute = args.column.optionTextAttribute || 'name';
           var defaultValue;
-          var boxWidth = 200;
+          var boxWidth = args.column.width;
           var offsetWith = boxWidth + 28;
 
           this.init = function() {
             $wrapper = $("<DIV style='z-index:10000;position:absolute;background:white;padding:3px;margin:-3px 0 0 -7px;border:3px solid gray; -moz-border-radius:10px; border-radius:10px;'/>")
                 .appendTo(args.container);
             if ((args.column.type === 'has_and_belongs_to_many') || (args.column.type === 'has_many')) {
-              $select = $("<select class='chzn-select' multiple style='width:" + boxWidth + "px'></select>");
+              $select = $("<select class='chzn-select' multiple style='max-width:" + boxWidth + "px'></select>");
             } else {
-              $select = $("<select class='chzn-select' style='width:" + boxWidth + "px'></select>");
+              $select = $("<select class='chzn-select' style='max-width:" + boxWidth + "px'></select>");
             }
             $select.appendTo($wrapper);
             $select.focus();
@@ -1118,7 +1118,7 @@
             var choicesFetchPath = args.column.choices;
             var optionTextAttribute = args.column.optionTextAttribute || 'name';
             var defaultValue;
-            var boxWidth = 200;
+            var boxWidth = args.column.width;
             var offsetWith = boxWidth + 28;
 
             this.init = function() {
@@ -1126,9 +1126,9 @@
               $wrapper = $("<DIV style='z-index:10000;position:absolute;background:white;padding:3px;margin:-3px 0 0 -7px;border:3px solid gray; -moz-border-radius:10px; border-radius:10px;'/>")
               .appendTo(args.container);
               if ((args.column.type === 'has_and_belongs_to_many') || (args.column.type === 'has_many')) {
-                $select = $("<select class='chzn-select' multiple style='width:" + boxWidth + "px'></select>");
+                $select = $("<select class='chzn-select' multiple style='max-width:" + boxWidth + "px'></select>");
               } else {
-                $select = $("<select class='chzn-select' style='width:" + boxWidth + "px'></select>");
+                $select = $("<select class='chzn-select' style='max-width:" + boxWidth + "px'></select>");
               }
 
               $select.appendTo($wrapper);
@@ -1264,13 +1264,13 @@
 
           var dependColumn = args.column.depend_column;
           var defaultValue;
-          var boxWidth = 200;
+          var boxWidth = args.column.width;
           var offsetWith = boxWidth + 28;
 
           this.init = function() {
             $wrapper = $("<DIV style='z-index:10000;position:absolute;background:white;padding:3px;margin:-3px 0 0 -7px;border:3px solid gray; -moz-border-radius:10px; border-radius:10px;'/>")
                 .appendTo(args.container);
-            $select = $("<select class='chzn-select' style='width:" +  boxWidth + "px'></select>")
+            $select = $("<select class='chzn-select' style='max-width:" +  boxWidth + "px'></select>")
                 .appendTo($wrapper);
             $select.focus();
             var winWith = $(window).width(),
