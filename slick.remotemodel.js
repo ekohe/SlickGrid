@@ -1,7 +1,7 @@
 // Remote model with pagination
 
 (function($) {
-	function RemoteModel(path, columns) {
+	function RemoteModel(path, initialFilters, columns) {
 		// private
 		var loadingSize = 200;
 		var preemptiveLoadingSize = 100;
@@ -14,17 +14,22 @@
 		var h_request = null;
 		var req = null; // ajax request
 		var req_page;
-		var filters = [];
 		var params = [];
     var pagingOptionsChanged = false;
     var grid;
     var loadingIndicator = null;
     var mainIndicator = null;
     var initedFilter = false;
+    var filters = [];
+    
+    if(initialFilters) {
+      for(var i in initialFilters) {
+        filters.push([initialFilters[i]['column'], initialFilters[i]['value'], initialFilters[i]['operator']]);
+      }
+    }
     
     // Connection manager
     var connectionManager = new ConnectionManager();
-    
     
 		// events
 		var onDataLoading = new Slick.Event();
@@ -37,17 +42,9 @@
       //  Connect the grid and the loader
       grid.onViewportChanged.subscribe(function(e, args) {
         var vp = grid.getViewport();
-        // when the grid rendered, onViewportChanged will be triggerd, if eagerLoading is false, we don't load the initial data
-        if(grid.options.eagerLoading != false){ 
-          ensureData(vp.top, vp.bottom);
-        }
-      });
-      
-      // This event is similar with onViewportChanged for loading data, the only difference is here we don't consider the eagerLoading,
-      // so whether the eagerLoading true or false, the grid will load data when the scroll exceed the limit row.
-      // Without this event handler (only rely on onViewportChanged), if the grid's eagerLoading is false, the grid will not load data when the scroll exceed the limit row. 
-      grid.onScroll.subscribe(function(e, args) {
-        var vp = grid.getViewport();
+        // when the grid rendered, onViewportChanged will be triggerd, if eagerLoading is false and no data loaded yet, we don't load the initial data
+        if(grid.options.eagerLoading == false && grid.getData().length == 0) return false;
+
         ensureData(vp.top, vp.bottom);
       });
 
@@ -110,7 +107,6 @@
         // Preemptive loading mode
         normalLoadingMode = false;
       }
-
       if (initedFilter || filters.length > 0) {
         path = path.replace(/filters.*?&/g,'').replace(/&filters.*/g,'');
       } else {
