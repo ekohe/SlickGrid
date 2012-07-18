@@ -7,7 +7,6 @@
   });
   function FilterPanel(grid, loader, triggerElement, currentFilters) {
     var filterWidthOffset = -3; // 2 pixels padding on the left and one pixel for the border on the left
-    
     // private
     var $grid;
     var $loader;
@@ -32,6 +31,8 @@
       }
       
       triggerElement.click(function() {
+        if($(this).hasClass('toolbar_icon_disabled')) return false;
+        
         if ($($grid.getHeaderRow()).is(":visible")) {
             $grid.hideHeaderRowColumns();
             trigger(self.onFilterPanelClosed, {filterData:currentFiltersApplied});
@@ -130,12 +131,14 @@
 		}
 		
 		function setFilter() {
-      var newFilters = [];
+      var originalFilters = $loader.getFilters();
       if (currentFiltersApplied.length != 0) {
         $.each(currentFiltersApplied, function() {
-          newFilters.push([this['id'], this['value']]);
+          if(this['operator'] == undefined) this['operator'] = 'equals'
+          originalFilters.push([this['id'], this['value'], this['operator']]);
         });
-        $loader.setFilterWithoutRefresh(newFilters);
+
+        $loader.setFilterWithoutRefresh(originalFilters);
 	    }
 		}
 		
