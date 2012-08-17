@@ -99,7 +99,17 @@
         },
         
         BelongsToFormatter : function(row, cell, value, columnDef, dataContext) {
-            return value[columnDef.optionTextAttribute];
+            value = value[columnDef.optionTextAttribute];
+            if(!columnDef.inner_formatter) return value;
+
+            // if has inner_formatter
+            if (columnDef.inner_formatter == 'boolean') {
+                return BoolCellFormatter(row, cell, eval(value), columnDef, dataContext);
+            } else if(typeof(window[columnDef.inner_formatter]) == 'function') {
+                return window[columnDef.inner_formatter](row, cell, value, columnDef, dataContext);
+            } else {
+                return value;
+            }
         },
 
         HasManyFormatter : function(row, cell, value, columnDef, dataContext) {
@@ -489,11 +499,18 @@
                     onClose: function() { calendarOpen = false },
                     timeFormat: 'hh:mm' 
                 };
-                if(item.unit && item.unit.unit == "mn")
-                    $.extend(attrs, {
-                        stepMinute: 5,
-                        minuteGrid: 5
-                    });
+                if(item.unit) {
+                    if(item.unit.unit == "mn")
+                        $.extend(attrs, {
+                            stepMinute: 5,
+                            minuteGrid: 5
+                        });
+                    else if(item.unit.unit == 'slot')
+                        $.extend(attrs, {
+                            stepMinute: 5,
+                            minuteGrid: 10
+                        });
+                }
                 $input.timepicker(attrs);
             };
 
@@ -1031,7 +1048,7 @@
                 $select.append("<option value='" + value.id + "'>" + value[optionTextAttribute] + "</option>");
               });
               $select.val(args.item[args.column.id].id);
-              $select.chosen();
+              $select.chosen({allow_single_deselect: true});
             } else {
               if ($.isEmptyObject(window._jsonData[choicesFetchPath])) {
                 $.getJSON(choicesFetchPath, function(itemdata){
@@ -1040,14 +1057,14 @@
                     $select.append("<option value='" + value.id + "'>" + value[optionTextAttribute] + "</option>");
                   });
                   $select.val(args.item[args.column.id].id);
-                  $select.chosen();
+                  $select.chosen({allow_single_deselect: true});
                 });
               } else {
                 $.each(window._jsonData[choicesFetchPath], function(index, value) {
                   $select.append("<option value='" + value.id + "'>" + value[optionTextAttribute] + "</option>");
                 });
                 $select.val(args.item[args.column.id].id);
-                $select.chosen();
+                $select.chosen({allow_single_deselect: true});
               }
             }
             // FIXME
@@ -1164,7 +1181,7 @@
                   $select.append("<option value='" + value.id + "'>" + value[optionTextAttribute] + "</option>");
                 });
                 $select.val(args.item[args.column.id].id);
-                $select.chosen();
+                $select.chosen({allow_single_deselect: true});
               } else {
                 if ($.isEmptyObject(window._jsonData[choicesFetchPath])) {
                   $.getJSON(choicesFetchPath, function(itemdata){
@@ -1174,7 +1191,7 @@
                     });
                     defaultValue = $.map(args.item[args.column.id], function(val,i) { return val.id; } );
                     $select.val(defaultValue);
-                    $select.chosen();
+                    $select.chosen({allow_single_deselect: true});
                   });
                 } else {
                   $.each(window._jsonData[choicesFetchPath], function(index, value) {
@@ -1182,7 +1199,7 @@
                   });
                   defaultValue = $.map(args.item[args.column.id], function(val,i) { return val.id; } );
                   $select.val(defaultValue);
-                  $select.chosen();
+                  $select.chosen({allow_single_deselect: true});
                 }
               }
 
@@ -1322,7 +1339,7 @@
                 $select.append("<option value='" + value.id + "'>" + value.name + "</option>");
               });
               $select.val(args.item[args.column.id]);
-              $select.chosen();
+              $select.chosen({allow_single_deselect: true});
             } else {
               if ($.isEmptyObject(window._jsonData[choicesFetchPath])) {
                 $.getJSON(choicesFetchPath, function(itemdata){
@@ -1331,14 +1348,14 @@
                     $select.append("<option value='" + value.id + "'>" + value.name + "</option>");
                   });
                   $select.val(args.item[args.column.id]);
-                  $select.chosen();
+                  $select.chosen({allow_single_deselect: true});
                 });
               } else {
                 $.each(window._jsonData[choicesFetchPath], function(index, value) {
                   $select.append("<option value='" + value.id + "'>" + value.name + "</option>");
                 });
                 $select.val(args.item[args.column.id]);
-                $select.chosen();
+                $select.chosen({allow_single_deselect: true});
               }
             }
             setTimeout(function(){ $("#" + $select.attr('id') + "_chzn .chzn-drop").css('left', '0');}, 200);
@@ -1418,7 +1435,7 @@
                     $from.append("<option value='" + value.id + "' code='" + value.code + "'>" + value.name + "</option>");
                   });
                   $('option[code="' + values[0] + '"]', $from).attr("selected","selected");
-                  $from.chosen();
+                  $from.chosen({allow_single_deselect: true});
                 } else {
                   if ($.isEmptyObject(window._jsonData[from_choices])) {
                     $.getJSON(from_choices, function(itemdata){
@@ -1427,14 +1444,14 @@
                         $from.append("<option value='" + value.id + "' code='" + value.code + "'>" + value.name + "</option>");
                       });
                       $('option[code="' + values[0] + '"]', $from).attr("selected","selected");
-                      $from.chosen();
+                      $from.chosen({allow_single_deselect: true});
                     });
                   } else {
                     $.each(window._jsonData[from_choices], function(index, value) {
                       $from.append("<option value='" + value.id + "' code='" + value.code + "'>" + value.name + "</option>");
                     });
                     $('option[code="' + values[0] + '"]', $from).attr("selected","selected");
-                    $from.chosen();
+                    $from.chosen({allow_single_deselect: true});
                   }
                 }
                 // Append to select options
@@ -1443,7 +1460,7 @@
                     $to.append("<option value='" + value.id + "' code='" + value.code + "'>" + value.name + "</option>");
                   });
                   $('option[code="' + values[1] + '"]', $to).attr("selected","selected");
-                  $to.chosen();
+                  $to.chosen({allow_single_deselect: true});
                 } else {
                   if ($.isEmptyObject(window._jsonData[to_choices])) {
                     $.getJSON(to_choices, function(itemdata){
@@ -1452,14 +1469,14 @@
                         $to.append("<option value='" + value.id + "' code='" + value.code + "'>" + value.name + "</option>");
                       });
                       $('option[code="' + values[1] + '"]', $to).attr("selected","selected");
-                      $to.chosen();
+                      $to.chosen({allow_single_deselect: true});
                     });
                   } else {
                     $.each(window._jsonData[to_choices], function(index, value) {
                       $to.append("<option value='" + value.id + "' code='" + value.code + "'>" + value.name + "</option>");
                     });
                     $('option[code="' + values[1] + '"]', $to).attr("selected","selected");
-                    $to.chosen();
+                    $to.chosen({allow_single_deselect: true});
                   }
                 }
                 scope.focus();
