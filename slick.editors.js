@@ -1280,7 +1280,11 @@
           // if the choices option is an array, construce an select option for each element
           if($.isArray(choices)) {
             choicesFetchPath = $.map(choices, function(e, index){
-              return {id: e, name: e};
+              if ($.isPlainObject(e)) {
+                return e;
+              } else {
+                return {id: e, name: e};
+              }
             });
           } else if($.isPlainObject(choices)) {   // else if it is an object, construct a more complex object containing select options
             choicesFetchPath = {};
