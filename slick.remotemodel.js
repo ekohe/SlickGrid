@@ -224,12 +224,17 @@
 	    totalRows = parseInt(resp.total);
 			for (var i = 0; i < resp.rows.length; i++) {
 			  var j = parseInt(from)+parseInt(i);
-			  var object = {};
+			  var obj = {};
 			  $.each(columns, function(index, value) {
+			    var item = resp.rows[i][index];
 			    // match the column and the response data (compare column name and response data key)
-			    object[value.id] = resp.rows[i][index];         
+			    if(item && typeof(item) == 'object') {
+            $.extend(true, obj, item);
+			    } else {
+			      obj[value.id] = item;    
+			    }     
 			  });
-				data[j] = object;
+				data[j] = obj;
 				data[j].slick_index = j;
 			}
 			req = null;
@@ -294,39 +299,51 @@
       filters = filterFn;
     }
 
-		function addFilter(column, string, operator) {
+    function addFilterWithoutRefresh(column, string, operator) {
       if(typeof(operator)==='undefined') operator = 'equals';
 
-		  // If the string is an empty string and operator is 'equals', then removing the filter if existing
-			if (string=='' && operator=='equals') {
-			  var newFilters = [];
-			  $.each(filters, function(index,filter) {
-			    if (filter[0]!=column)
-			      newFilters.push(filter);
-			  });
-			  filters = newFilters;
-	      refresh(); // Only clear if it was found
-			  return;
-			}
-						
-      var updated = 0;
-      // Try to update existing filter
-		  $.map(filters, function(filter) {
-		    if (filter[0]==column) {
-	        filter[1] = string;
-          filter[2] = operator;
-	        updated = 1;
-	        return;
-		    }
-		  });
-		  
-		  // Add new filter
-		  if (updated==0)
-  		  filters.push([column, string, operator]);
-		
+      // If the string is an empty string and operator is 'equals', then removing the filter if existing
+      if (string=='' && operator=='equals') {
+        var newFilters = [];
+        $.each(filters, function(index,filter) {
+          if (filter[0]!=column)
+            newFilters.push(filter);
+        });
+        filters = newFilters;
+      } else {
+        var updated = 0;
+        // Try to update existing filter
+        $.map(filters, function(filter) {
+          if (filter[0]==column) {
+            filter[1] = string;
+            filter[2] = operator;
+            updated = 1;
+            return;
+          }
+        });  
+        // Add new filter
+        if (updated==0) {
+          filters.push([column, string, operator]);
+        }
+      }
+    }
+
+		function addFilter(column, string, operator) {
+      addFilterWithoutRefresh(column, string, operator);
 			refresh();
   	}
-  	
+
+    function addFiltersWithoutRefresh(filters) {
+      $.each(filters, function(index, filter) {
+        addFilterWithoutRefresh(filter[0], filter[1], filter[2]);
+      });
+    }
+
+    function addFilters(filters) {
+      addFiltersWithoutRefresh(filters);
+      refresh();
+    }
+
   	function getFilters() {
   	  return filters;
   	}
@@ -429,9 +446,12 @@
 			"getSortColumn": getSortColumn,
 			"getSortDirection": getSortDirection,
 			"getFilters": getFilters,
+      "setFilterWithoutRefresh": setFilterWithoutRefresh,
 			"setFilter": setFilter,
-			"setFilterWithoutRefresh": setFilterWithoutRefresh,
+      "addFilterWithoutRefresh": addFilterWithoutRefresh,
 			"addFilter": addFilter,
+      "addFiltersWithoutRefresh": addFiltersWithoutRefresh,
+      "addFilters": addFilters,
 			"getParams": getParams,
 			"setParam": setParam,
 			"setGrid": setGrid,

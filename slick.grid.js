@@ -992,8 +992,7 @@ if (typeof Slick === "undefined") {
         function getDataItem(i) {
             if (data.getItem) {
                 return data.getItem(i);
-            }
-            else {
+            } else {
                 return data[i];
             }
         }

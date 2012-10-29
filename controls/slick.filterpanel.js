@@ -35,6 +35,7 @@
         
         if ($($grid.getHeaderRow()).is(":visible")) {
             $grid.hideHeaderRowColumns();
+            currentFilters = null;
             trigger(self.onFilterPanelClosed, {filterData:currentFiltersApplied});
         } else {   
             $grid.showHeaderRowColumns();
@@ -88,7 +89,7 @@
       setOriginalFilter();
 
       $.each(columns, function(i, value) {
-        var value = '', field = this.field, inputHtml = '', inputWidth, cssClass = "";
+        var value = '', field = this.id, inputHtml = '', inputWidth, cssClass = "";
         // Try to get the value of this filter if any
         $.each(currentFiltersApplied, function() {
           if (this.id==field)
@@ -123,12 +124,10 @@
 		// We store the filters value so that after resizing or reordering of the columns, we can 
 		//  generate the filters boxes with the same values
 		function updateCurrentFilters() {
-      //currentFiltersApplied = [];
       currentFilters = {};
 		  $.each($("input", $($grid.getHeaderRow())), function() {
         if ($(this).val()!='') {
           currentFilters[$(this).attr('id')] = $(this).val();
-		      //currentFiltersApplied.push({id:$(this).attr('id'), value:$(this).val()});
         }
 		  });
 		}
@@ -149,21 +148,24 @@
 		}
 		
 		function setCurrentFilter(){
-      // var filters = [];
       if (currentFiltersApplied.length > 0) {
+        var filters = [];
         $.each(currentFiltersApplied, function(){
-          // filters.push([this['id'], this['value'], 'equals']);
-          $loader.addFilter(this['id'], this['value'], 'equals');
+          filters.push([this['id'], this['value'], 'equals']);
         });
+        $loader.setFilter(filters);
       } else {
         $loader.setFilterWithoutRefresh([]);
         if ($grid.master) {
-          $loader.addFilter($grid.master.filter_column, $grid.master.filter_value, $grid.master.filter_operator);
+          if ($grid.master instanceof Array) {
+            $loader.addFilters($grid.master);
+          } else {
+            $loader.addFilter($grid.master.filter_column, $grid.master.filter_value, $grid.master.filter_operator);
+          }
         } else {
           $loader.setFilter([]);
         }
       }
-      // $loader.setFilter(filters);
 		}
 		
 		function applyCurrentFilters(filters) {
