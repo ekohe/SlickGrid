@@ -60,26 +60,37 @@
 
       // Hook between the filter input box and the data loader setFilter
       // Applay filter after 1000ms
-      $("input", $($grid.getHeaderRow())).live('keyup', function(e) {
-        delay(function(){
-          updateCurrentFilters();
-          applyCurrentFilters(currentFilters);
-          setCurrentFilter();
-          trigger(self.onFilterLoaded, {filterData:currentFiltersApplied});
-        }, 1000);
+      $("input", $($grid.getHeaderRow())).off('keyup').on('keyup', function(e) {
+        var containerWidth = $grid.container.innerWidth();
+        var inputLeft = $(this).position().left + $(this).outerWidth();
+        var $viewPort = $($grid.getCanvasNode()).parent();
+        var ignoreKeyCodes = [9, 224, 13];
+
+        if (containerWidth < inputLeft) {
+          $viewPort.scrollLeft(inputLeft - containerWidth);
+        }
+
+        if (ignoreKeyCodes.indexOf(e.which) == -1) {
+          delay(function(){
+            updateCurrentFilters();
+            applyCurrentFilters(currentFilters);
+            setCurrentFilter();
+            trigger(self.onFilterLoaded, {filterData:currentFiltersApplied});
+          }, 1000);
+        }
       });
-		}
-		
-		function trigger(evt, args, e) {
+    }
+    
+    function trigger(evt, args, e) {
         e = e || new Slick.EventData();
         args = args || {};
         args.filterPanel = self;
         return evt.notify(args, e, self);
     }
-		
-		function generateFilters() {
-		  var inputWidth, columns, inputElement;
-		  var ua = navigator.userAgent.toLowerCase();
+    
+    function generateFilters() {
+      var inputWidth, columns, inputElement;
+      var ua = navigator.userAgent.toLowerCase();
 
       html = "";
       columns = $grid.getColumns();
@@ -118,21 +129,21 @@
       
       // Fills up and display the secondary row
       $($grid.getHeaderRow()).html(html).show();
-		}
+    }
 
-		// This method update the current filters applied to the currentFiltersApplied array
-		// We store the filters value so that after resizing or reordering of the columns, we can 
-		//  generate the filters boxes with the same values
-		function updateCurrentFilters() {
+    // This method update the current filters applied to the currentFiltersApplied array
+    // We store the filters value so that after resizing or reordering of the columns, we can 
+    //  generate the filters boxes with the same values
+    function updateCurrentFilters() {
       currentFilters = {};
-		  $.each($("input", $($grid.getHeaderRow())), function() {
+      $.each($("input", $($grid.getHeaderRow())), function() {
         if ($(this).val()!='') {
           currentFilters[$(this).attr('id')] = $(this).val();
         }
-		  });
-		}
-		
-		function setOriginalFilter() {
+      });
+    }
+    
+    function setOriginalFilter() {
       var originalFilters = $loader.getFilters();
       if (currentFiltersApplied.length != 0) {
         $.each(currentFiltersApplied, function() {
@@ -144,41 +155,41 @@
         });
 
         $loader.setFilterWithoutRefresh(originalFilters);
-	    }
-		}
-		
-		function setCurrentFilter(){
+      }
+    }
+    
+    function setCurrentFilter(){
+      var filters = [];
+      // add current filters
       if (currentFiltersApplied.length > 0) {
-        var filters = [];
         $.each(currentFiltersApplied, function(){
           filters.push([this['id'], this['value'], 'equals']);
         });
-        $loader.setFilter(filters);
-      } else {
-        $loader.setFilterWithoutRefresh([]);
-        if ($grid.master) {
-          if ($grid.master instanceof Array) {
-            $loader.addFilters($grid.master);
-          } else {
-            $loader.addFilter($grid.master.filter_column, $grid.master.filter_value, $grid.master.filter_operator);
-          }
+      }
+      // add masters
+      if ($grid.master) {
+        if ($grid.master instanceof Array) {
+          $.each($grid.master, function(){
+            filters.push(this);
+          });
         } else {
-          $loader.setFilter([]);
+          filters.push([$grid.master.filter_column, $grid.master.filter_value, $grid.master.filter_operator]);
         }
       }
-		}
-		
-		function applyCurrentFilters(filters) {
-		  currentFiltersApplied = [];
-		  if (filters) {
-  		  $.each(filters, function(k, v) {
+      $loader.setFilter(filters);
+    }
+    
+    function applyCurrentFilters(filters) {
+      currentFiltersApplied = [];
+      if (filters) {
+        $.each(filters, function(k, v) {
           if (v !='')
-  		      currentFiltersApplied.push({id: k, value: v});
-  		  });
-	    }
-		}
-		
-		$.extend(this, {
+            currentFiltersApplied.push({id: k, value: v});
+        });
+      }
+    }
+    
+    $.extend(this, {
         // Events
         "onFilterLoaded":                     new Slick.Event(),
         'onFilterPanelClosed':                new Slick.Event(),
@@ -188,7 +199,7 @@
         "applyCurrentFilters":                applyCurrentFilters,
         "updateCurrentFilters":               updateCurrentFilters
     });
-		
-		init();
-	}
+    
+    init();
+  }
 }(jQuery));
