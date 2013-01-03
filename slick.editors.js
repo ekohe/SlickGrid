@@ -1431,10 +1431,10 @@
               } else {
                 $select.val(args.item[args.column.field].id);
                 $select.chosen({allow_single_deselect: true});
-              }
+              }  
               // Update theCurrentValue
               $select.chosen().change(function(){ theCurrentValue = $select.val(); });
-              theCurrentValue = $select.val();
+              theCurrentValue = $select.val();  
               // 'Add new option' option handler
               $('#' + $select.attr('id') + '_chzn li:contains("' + addOptionText + '")').off('mouseup').on('mouseup', function(event) {
                 event.preventDefault();
