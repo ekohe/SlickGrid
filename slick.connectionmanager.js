@@ -3,11 +3,11 @@
     // Keeps all the requests available in an array
     var requests = [];
 
-    function createConnection(grid, url, indicator, clientOnSuccess, clientOnError) {
+    function createConnection(grid, url, indicator, clientOnSuccess, clientOnError, currentRequestVersionNumber) {
       var existingRequest = getConnection(url);
       
       // Just return if connection already exists.
-      if (existingRequest != null) { return; }
+      if (existingRequest !== null) { return; }
       
       var newRequest = $.ajax({url: url,
                            success: onSuccess,
@@ -16,10 +16,10 @@
                            
       newRequest.clientOnSuccess = clientOnSuccess;
       newRequest.clientOnError = clientOnError;
-      newRequest.indicator = indicator;      
+      newRequest.indicator = indicator;
       newRequest.url = url;
       newRequest.loader = grid.loader;
-      newRequest.versionNumber = new Date().getTime(); // Set the version number
+      newRequest.versionNumber = currentRequestVersionNumber; // Set the version number
       
       showIndicator(indicator);
 
@@ -28,10 +28,11 @@
         
     function onSuccess(data, textStatus, request) {
       hideIndicator(request.indicator);
-      if (request.versionNumber > request.loader.lastRequestVersionNumber) {
-        request.loader.lastRequestVersionNumber = request.versionNumber; // Update lastRequestVersionNumber
-        request.clientOnSuccess(data, textStatus, request);
+      if (request.versionNumber < request.loader.lastRequestVersionNumber) {
+        return;
       }
+      request.loader.lastRequestVersionNumber = request.versionNumber; // Update lastRequestVersionNumber
+      request.clientOnSuccess(data, textStatus, request);
       // Remove request
       var requestIndex = requests.indexOf(request);
       if(requestIndex!=-1) requests.splice(requestIndex, 1);
@@ -45,7 +46,7 @@
     }
     
     function is_empty(){
-      return requests.length == 0;
+      return requests.length === 0;
     }
     
     function showIndicator(indicator) {
@@ -56,8 +57,9 @@
     }
 
     function hideIndicators(indicators) {
-      for (var i = 0;i < indicators.length;i++)
-        hideIndicator(indicators[i]);      
+      for (var i = 0;i < indicators.length;i++) {
+        hideIndicator(indicators[i]);
+      }
     }
     
     function hideIndicator(indicator) {
@@ -71,7 +73,7 @@
       var requestCount = indicator.data('requestCount');
       var stats = indicator.find(".loading_stats");
       
-      if (requestCount == 0) {
+      if (requestCount === 0) {
         stats.text("");
       } else {
         stats.text("Loading " + (indicator.loadingSize * requestCount) + " rows");
@@ -103,7 +105,7 @@
       "createConnection": createConnection,
       "is_empty": is_empty,
       "removeConnection": removeConnection
-    }
+    };
   }
-  $.extend(true, window, { ConnectionManager: ConnectionManager})
+  $.extend(true, window, { ConnectionManager: ConnectionManager});
 })(jQuery);

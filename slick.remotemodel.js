@@ -23,6 +23,7 @@
     var initedFilter = false;
     var filters = [];
     var lastRequestVersionNumber = 0;
+    var currentRequestVersionNumber = 0;
     var self = this;
     
     if(initialFilters) {
@@ -47,8 +48,7 @@
       grid.onViewportChanged.subscribe(function(e, args) {
         var vp = grid.getViewport();
         // when the grid rendered, onViewportChanged will be triggerd, if eagerLoading is false and no data loaded yet, we don't load the initial data
-        if(grid.options.eagerLoading == false && grid.getData().length == 0) return false;
-
+        if(grid.options.eagerLoading === false && grid.getData().length === 0) return false;
         // Event triggered before the ajax request
         beforeRemoteRequest.notify();
         ensureData(vp.top, vp.bottom);
@@ -77,7 +77,7 @@
 
     function isDataLoaded(from,to) {
       for (var i=from; i<=to; i++) {
-        if (data[i] == undefined || data[i] == null)
+        if (data[i] === undefined || data[i] === null)
           return false;
       }
 
@@ -98,14 +98,13 @@
       var offset = paginationOptions[0];
       var count = paginationOptions[1];
       var normalLoadingMode = true;
-
-      if (count==0) {
+      if (count === 0) {
         // Nothing to load, try to see if there is a need to load data preemptively
         paginationOptions = getPaginationOptions(from-preemptiveLoadingSize, to+preemptiveLoadingSize);
         offset = paginationOptions[0];
         count = paginationOptions[1];
 
-        if (count==0) {
+        if (count === 0) {
           // the current data on the view is loaded and no preemptive loading to do
           return null;
         }
@@ -127,9 +126,9 @@
     
     function conditionalURI() {
       // Sorting
-      if (sortcol==null) {
+      if (sortcol === null) {
         sortcol = "";
-      } 
+      }
       var url = "&sort_col="+encodeURIComponent(sortcol);
       if (sortdir>0) {
         url += "&sort_dir=ASC";
@@ -152,7 +151,7 @@
     // Returns offset, count
     function getPaginationOptions(from, to) {
       // 2 cases, whether we are in load-as-scroll mode or the per page mode
-      if (pageSize==0) {
+      if (pageSize === 0) {
         // Load as we scroll
         if (from < 0)
           from = 0;
@@ -170,7 +169,8 @@
         while (data[toPage * loadingSize] !== undefined && fromPage < toPage)
           toPage--;
 
-        if (fromPage > toPage || ((fromPage == toPage) && data[fromPage*loadingSize] !== undefined)) {
+        // if (fromPage > toPage || ((fromPage == toPage) && data[fromPage*loadingSize] !== undefined)) {
+        if (fromPage > toPage || ((fromPage == toPage) && data[fromPage*loadingSize])) {
           return [0,0];
         }
       
@@ -180,7 +180,7 @@
         return [(fromPage * loadingSize), (((toPage - fromPage) * loadingSize) + loadingSize)];
       } else {
         // Per page
-        if (pagingOptionsChanged==false) {
+        if (pagingOptionsChanged === false) {
           return [0,0];
         }
         pagingOptionsChanged = false;
@@ -198,14 +198,13 @@
       var urlData = generateUrl(from, to);
 
       // Nothing to load, just return.
-      if(urlData == null) { return; }
-      
-      var url = urlData[0];      
+      if(urlData === null) { return; }
+      var url = urlData[0];
       var normalLoading = urlData[1];
       
       // Store loading size to provide stats. If pageSize is not zero then we are coming from a pager request.
-      loadingIndicator.loadingSize = pageSize == 0 ? loadingSize : pageSize;
-      connectionManager.createConnection(grid, url, loadingIndicator, onSuccess, onError);
+      loadingIndicator.loadingSize = (pageSize === 0 ? loadingSize : pageSize);
+      connectionManager.createConnection(grid, url, loadingIndicator, onSuccess, onError, currentRequestVersionNumber);
     }
 
 
@@ -217,19 +216,19 @@
       var from;
       var to;
 
-      if (pageSize==0) {
+      if (pageSize === 0) {
         from = resp.offset;
         to = resp.offset + resp.count;
-        data.length = parseInt(resp.total);
+        data.length = parseInt(resp.total, 10);
       } else {
         from = 0;
-        to = parseInt(resp.count);
+        to = parseInt(resp.count, 10);
         data.length = to;
       }
 
-      totalRows = parseInt(resp.total);
+      totalRows = parseInt(resp.total, 10);
       for (var i = 0; i < resp.rows.length; i++) {
-        var j = parseInt(from)+parseInt(i);
+        var j = parseInt(from, 10) + parseInt(i, 10);
         var obj = {};
         $.each(columns, function(index, value) {
           var item = resp.rows[i][index];
@@ -237,8 +236,8 @@
           if(item && typeof(item) == 'object' && !(item instanceof Array)) {
             $.extend(true, obj, item);
           } else {
-            obj[value.id] = item;    
-          }     
+            obj[value.id] = item;
+          }
         });
         data[j] = obj;
         data[j].slick_index = j;
@@ -252,7 +251,7 @@
       dataIsLoaded({from:from, to:to});
 
       // Updating pager
-      onPagingInfoChanged.notify(getPagingInfo());    
+      onPagingInfoChanged.notify(getPagingInfo());
     }
     
     function getColumns() {
@@ -260,11 +259,11 @@
     }
     
     function getKeys(h) {
-      var keys = new Array();
+      var keys = [];
       for (var key in h)
         keys.push(key);
       return keys;
-    } 
+    }
 
     function reloadData(from,to) {
       var i;
@@ -280,14 +279,20 @@
     }
 
     function setSort(column,dir) {
-      sortcol = column;
-      sortdir = dir;
+      if (sortcol != column || sortdir != dir) {
+        currentRequestVersionNumber++;
+        sortcol = column;
+        sortdir = dir;
+      }
       refresh();
     }
 
     function setSortWithoutRefresh(column, dir) {
-      sortcol = column;
-      sortdir = dir;
+      if (sortcol != column || sortdir != dir) {
+        currentRequestVersionNumber++;
+        sortcol = column;
+        sortdir = dir;
+      }
     }
     
     function getSortColumn() {
@@ -299,25 +304,34 @@
     }
     
     function setFilter(filterFn) {
-      filters = filterFn;
-      refresh(); 
+      if (filters != filterFn) {
+        currentRequestVersionNumber++;
+        filters = filterFn;
+      }
+      refresh();
     }
     
     function setFilterWithoutRefresh(filterFn) {
-      filters = filterFn;
+      if (filters != filterFn) {
+        currentRequestVersionNumber++;
+        filters = filterFn;
+      }
     }
 
     function addFilterWithoutRefresh(column, string, operator) {
       if(typeof(operator)==='undefined') operator = 'equals';
 
       // If the string is an empty string and operator is 'equals', then removing the filter if existing
-      if (string=='' && operator=='equals') {
+      if (string === '' && operator == 'equals') {
         var newFilters = [];
         $.each(filters, function(index,filter) {
           if (filter[0]!=column)
             newFilters.push(filter);
         });
-        filters = newFilters;
+        if (filters != newFilters) {
+          currentRequestVersionNumber++;
+          filters = newFilters;
+        }
       } else {
         var updated = 0;
         // Try to update existing filter
@@ -328,10 +342,11 @@
             updated = 1;
             return;
           }
-        });  
+        });
         // Add new filter
-        if (updated==0) {
+        if (updated === 0) {
           filters.push([column, string, operator]);
+          currentRequestVersionNumber++;
         }
       }
     }
@@ -359,13 +374,16 @@
     function setParam(column, string, _refresh) {
       if (_refresh === undefined) _refresh = true;
       // If the string is an empty string, then removing the param if existing
-      if (string=='') {
+      if (string === '') {
         var newParams = [];
         $.each(params, function(index,param) {
           if (param[0]!=column)
             newParams.push(param);
         });
-        params = newParams;
+        if (params != newParams) {
+          currentRequestVersionNumber++;
+          params = newParams;
+        }
         if (_refresh) refresh(); // Only clear if it was found
         return;
       }
@@ -381,14 +399,25 @@
       });
       
       // Add new param
-      if (updated==0)
+      if (updated === 0)
         params.push([column, string]);
+        currentRequestVersionNumber++;
     
       if (_refresh) refresh();
     }
 
     function getParams() {
       return params;
+    }
+
+    function getParam(key) {
+      var value = null;
+      $.each(params, function(i) {
+        if (params[i][0]==key) {
+          value = params[i][1];
+        }
+      });
+      return value;
     }
     
     function setLoadingIndicator(indicator) {
@@ -407,20 +436,24 @@
 
     function setPagingOptions(args) {
       pagingOptionsChanged = false;
-      if ((args.pageSize != undefined) && (args.pageSize!=pageSize)) {
+
+      if ((args.pageSize !== undefined) && (args.pageSize!=pageSize)) {
+        currentRequestVersionNumber++;
         pageSize = args.pageSize;
         pagingOptionsChanged = true;
       }
       
       var newPageNum = Math.min(args.pageNum, Math.ceil(totalRows / pageSize));
       
-      if ((args.pageNum != undefined) && (pageNum!=newPageNum)) {
+      if ((args.pageNum !== undefined) && (pageNum!=newPageNum)) {
+        currentRequestVersionNumber++;
         pageNum = newPageNum;
         pagingOptionsChanged = true;
       }
       
       // If we click "All" on pager, this is where we are
-      if ((args.pageNum == undefined) && (args.pageSize == 0)) {
+      if ((args.pageNum === undefined) && (args.pageSize === 0)) {
+        currentRequestVersionNumber++;
         pageNum = 0;
         pageSize = 0;
         pagingOptionsChanged = false;
@@ -428,7 +461,8 @@
       
       // Dirty fix for cases where the numbers don't add up
       if (totalRows / pageSize < pageNum) {
-        pageNum = 0
+        currentRequestVersionNumber++;
+        pageNum = 0;
         pagingOptionsChanged = true;
       }
       
@@ -445,6 +479,7 @@
       "data": data,
       "oldData": oldData,
       "connectionManager": connectionManager,
+      "currentRequestVersionNumber": currentRequestVersionNumber,
       "lastRequestVersionNumber": lastRequestVersionNumber,
       
       // methods
@@ -464,6 +499,7 @@
       "addFiltersWithoutRefresh": addFiltersWithoutRefresh,
       "addFilters": addFilters,
       "getParams": getParams,
+      "getParam": getParam,
       "setParam": setParam,
       "setGrid": setGrid,
       "conditionalURI": conditionalURI,
@@ -480,7 +516,7 @@
       "setPagingOptions": setPagingOptions,
       
       "setLoadingIndicator": setLoadingIndicator,
-      "setMainIndicator": setMainIndicator      
+      "setMainIndicator": setMainIndicator
     };
   }
 
