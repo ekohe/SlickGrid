@@ -25,9 +25,9 @@
     var lastRequestVersionNumber = 0;
     var currentRequestVersionNumber = 0;
     var self = this;
-    
+
     if(initialFilters) {
-      for(var i in initialFilters) {
+      for(var i = 0; i < initialFilters.length; i++) {
         filters.push([initialFilters[i]['column'], initialFilters[i]['value'], initialFilters[i]['operator']]);
       }
     }
@@ -65,7 +65,8 @@
     }
     
     function dataIsLoaded(args) {
-      for (var i = args.from; i <= args.to; i++) {
+      //for (var i = args.from; i <= args.to; i++) {
+      for (var i = args.from; i < args.to; i++) {
         grid.invalidateRow(i);
       }
 
@@ -135,6 +136,7 @@
       } else {
         url += "&sort_dir=DESC";
       }
+
       // Filters
       $.each(filters, function(index, value) {
         url += "&filters[][column]="+encodeURIComponent(value[0])+"&filters[][value]="+encodeURIComponent(value[1])+"&filters[][operator]="+encodeURIComponent(value[2]);
@@ -189,7 +191,6 @@
 
         // for (var i=fromPage; i<=toPage; i++)
         //   data[i*loadingSize] = null; // null indicates a 'requested but not available yet'
-        
         return [(pageNum * pageSize), pageSize];
       }
     }
@@ -227,20 +228,22 @@
       }
 
       totalRows = parseInt(resp.total, 10);
-      for (var i = 0; i < resp.rows.length; i++) {
-        var j = parseInt(from, 10) + parseInt(i, 10);
-        var obj = {};
-        $.each(columns, function(index, value) {
-          var item = resp.rows[i][index];
-          // match the column and the response data (compare column name and response data key)
-          if(item && typeof(item) == 'object' && !(item instanceof Array)) {
-            $.extend(true, obj, item);
-          } else {
-            obj[value.id] = item;
-          }
-        });
-        data[j] = obj;
-        data[j].slick_index = j;
+      if (resp.rows) {
+        for (var i = 0; i < resp.rows.length; i++) {
+          var j = parseInt(from, 10) + parseInt(i, 10);
+          var obj = {};
+          $.each(columns, function(index, value) {
+            var item = resp.rows[i][index];
+            // match the column and the response data (compare column name and response data key)
+            if(item && typeof(item) == 'object' && !(item instanceof Array)) {
+              $.extend(true, obj, item);
+            } else {
+              obj[value.id] = item;
+            }
+          });
+          data[j] = obj;
+          data[j].slick_index = j;
+        }
       }
       req = null;
       
@@ -285,7 +288,7 @@
 
     function decideCurrentPosition(){
       var currentRow, from;
-      if(grid.operatedIds.length > 0) {
+      if(grid.operatedIds && grid.operatedIds.length > 0) {
         var gridRow = grid.getRowByRecordId(grid.operatedIds[grid.operatedIds.length-1]);
         if(!gridRow) return [null, null];
         currentRow = gridRow.index - 1;
